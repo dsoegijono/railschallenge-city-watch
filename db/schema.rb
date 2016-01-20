@@ -16,8 +16,8 @@ ActiveRecord::Schema.define(version: 20150727080409) do
   create_table "responders", id: false, force: :cascade do |t|
     t.string  "type",                           null: false
     t.string  "name",                           null: false
-    t.integer "capacity",       default: 1,     null: false
-    t.boolean "on_duty",        default: false, null: false
+    t.integer "capacity",                       null: false
+    t.boolean "on_duty",        default: false
     t.string  "emergency_code"
   end
 

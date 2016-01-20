@@ -1,33 +1,31 @@
 class RespondersController < ApplicationController
   def create
-    @responder = Responder.new(responder_params)
-
+    r = params['responder']
     errors = {}
 
-    if @responder[:capacity] < 1 || @responder.capacity > 5
+    errors[:name] = ['can\'t be blank'] unless r['name']
+    errors[:type] = ['can\'t be blank'] unless r['type']
+    errors[:capacity] = ['can\'t be blank'] unless r['capacity']
+
+    if r['capacity'].to_i < 1 || r['capacity'].to_i > 5
       errors[:capacity] = [] if errors[:capacity].nil?
       errors[:capacity] << 'is not included in the list'
     end
 
-    if Responder.where(name: @responder.name).count > 0
+    if Responder.where(name: r['name']).count > 0
       errors[:name] = [] if errors[:name].nil?
       errors[:name] << 'has already been taken'
     end
 
-    unless @responder.emergency_code.nil?
-      errors == 'found unpermitted parameter: emergency_code'
+    if errors.blank? && r['emergency_code']
+      errors = 'found unpermitted parameter: emergency_code'
+    elsif errors.blank? && r['id']
+      errors = 'found unpermitted parameter: id'
+    elsif errors.blank? && r['on_duty']
+      errors = 'found unpermitted parameter: on_duty'
     end
 
-    # cannot set id
-
-    # cannot set on_duty
-
-    if @responder.name.nil?
-      errors[:name] = [] if errors[:name].nil?
-      errors[:name] << 'can\'t be blank'
-    end
-
-    if errors == {} || (errors.is_a?(String) && !errors.nil?)
+    if errors.blank?
       @responder = Responder.create!(responder_params)
       render json: { responder: @responder }, status: 201
     else
@@ -40,6 +38,6 @@ class RespondersController < ApplicationController
   private
 
   def responder_params
-    params.require(:responder).permit(:type, :name, :capacity)
+    params.require(:responder).permit(:type, :name, :capacity, :emergency_code, :on_duty)
   end
 end
