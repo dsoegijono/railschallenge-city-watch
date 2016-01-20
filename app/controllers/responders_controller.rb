@@ -24,17 +24,13 @@ class RespondersController < ApplicationController
       @responder = Responder.create!(responder_params)
       render json: { responder: @responder }, status: 201
     else
-      render json: {
-        message: errors
-      }, status: 422
+      render json: { message: errors }, status: 422
     end
   end
 
   def index
     @responders = Responder.all
-    render json: {
-      responders: @responders
-    }, status: 200
+    render json: { responders: @responders }, status: 200
   end
 
   def show
@@ -54,9 +50,6 @@ class RespondersController < ApplicationController
     if @responder
       if @responder.update(responder_params)
         render json: { responder: @responder }
-      else
-        render json: {
-        }
       end
     else
       render nothing: true, status: 404
