@@ -42,6 +42,15 @@ class RespondersController < ApplicationController
     }, status: 200
   end
 
+  def show
+    @responder = Responder.where(name: params['id']).first
+    if @responder
+      render json: { responder: @responder }, status: 200
+    else
+      render nothing: true, status: 404
+    end
+  end
+
   private
 
   def responder_params
