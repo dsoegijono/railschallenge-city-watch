@@ -3,6 +3,9 @@ class RespondersController < ApplicationController
     r = params['responder']
     errors = {}
 
+    unpermitted = %w(id on_duty emergency_code)
+    return if check_unpermitted_param(unpermitted)
+
     errors[:name] = ['can\'t be blank'] unless r['name']
     errors[:type] = ['can\'t be blank'] unless r['type']
     errors[:capacity] = ['can\'t be blank'] unless r['capacity']
@@ -15,14 +18,6 @@ class RespondersController < ApplicationController
     if Responder.where(name: r['name']).count > 0
       errors[:name] = [] if errors[:name].nil?
       errors[:name] << 'has already been taken'
-    end
-
-    if errors.blank? && r['emergency_code']
-      errors = 'found unpermitted parameter: emergency_code'
-    elsif errors.blank? && r['id']
-      errors = 'found unpermitted parameter: id'
-    elsif errors.blank? && r['on_duty']
-      errors = 'found unpermitted parameter: on_duty'
     end
 
     if errors.blank?
@@ -51,9 +46,40 @@ class RespondersController < ApplicationController
     end
   end
 
+  def update
+    unpermitted = %w(name type capacity emergency_code)
+    return if check_unpermitted_param(unpermitted)
+
+    @responder = Responder.where(name: params['id']).first
+    if @responder
+      if @responder.update(responder_params)
+        render json: { responder: @responder }
+      else
+        render json: {
+        }
+      end
+    else
+      render nothing: true, status: 404
+    end
+  end
+
   private
 
   def responder_params
     params.require(:responder).permit(:type, :name, :capacity, :emergency_code, :on_duty)
+  end
+
+  def check_unpermitted_param(unpermitted)
+    unpermitted.each do |u|
+      if params['responder'][u]
+        render_error_unpermitted_param(u)
+        return true
+      end
+    end
+    false
+  end
+
+  def render_error_unpermitted_param(param)
+    render json: { message: "found unpermitted parameter: #{param}" }, status: 422
   end
 end
