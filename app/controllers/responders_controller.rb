@@ -35,6 +35,13 @@ class RespondersController < ApplicationController
     end
   end
 
+  def index
+    @responders = Responder.all
+    render json: {
+      responders: @responders
+    }, status: 200
+  end
+
   private
 
   def responder_params
