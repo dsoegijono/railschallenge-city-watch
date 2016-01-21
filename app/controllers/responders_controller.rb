@@ -1,10 +1,12 @@
 class RespondersController < ApplicationController
+  before_action :find_responder, only: [:show, :update]
+
   def create
     r = params['responder']
     errors = {}
 
     unpermitted = %w(id on_duty emergency_code)
-    return if check_unpermitted_param(unpermitted)
+    return if check_unpermitted_param(unpermitted, params['responder'])
 
     errors[:name] = ['can\'t be blank'] unless r['name']
     errors[:type] = ['can\'t be blank'] unless r['type']
@@ -34,7 +36,6 @@ class RespondersController < ApplicationController
   end
 
   def show
-    @responder = Responder.where(name: params['id']).first
     if @responder
       render json: { responder: @responder }, status: 200
     else
@@ -44,9 +45,8 @@ class RespondersController < ApplicationController
 
   def update
     unpermitted = %w(name type capacity emergency_code)
-    return if check_unpermitted_param(unpermitted)
+    return if check_unpermitted_param(unpermitted, params['responder'])
 
-    @responder = Responder.where(name: params['id']).first
     if @responder
       if @responder.update(responder_params)
         render json: { responder: @responder }
@@ -58,21 +58,11 @@ class RespondersController < ApplicationController
 
   private
 
+  def find_responder
+    @responder = Responder.where(name: params['id']).first
+  end
+
   def responder_params
     params.require(:responder).permit(:type, :name, :capacity, :emergency_code, :on_duty)
-  end
-
-  def check_unpermitted_param(unpermitted)
-    unpermitted.each do |u|
-      if params['responder'][u]
-        render_error_unpermitted_param(u)
-        return true
-      end
-    end
-    false
-  end
-
-  def render_error_unpermitted_param(param)
-    render json: { message: "found unpermitted parameter: #{param}" }, status: 422
   end
 end

@@ -12,4 +12,18 @@ class ApplicationController < ActionController::Base
   def destroy
     render json: { message: 'page not found' }, status: 404
   end
+
+  def check_unpermitted_param(unpermitted, params)
+    unpermitted.each do |u|
+      if params[u]
+        render_error_unpermitted_param(u)
+        return true
+      end
+    end
+    false
+  end
+
+  def render_error_unpermitted_param(param)
+    render json: { message: "found unpermitted parameter: #{param}" }, status: 422
+  end
 end

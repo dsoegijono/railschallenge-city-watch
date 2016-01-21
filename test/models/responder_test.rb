@@ -1,7 +1,6 @@
-require "test_helper"
+require 'test_helper'
 
 class ResponderTest < ActiveSupport::TestCase
-
   def responder
     @responder ||= Responder.new
   end
@@ -9,5 +8,4 @@ class ResponderTest < ActiveSupport::TestCase
   def test_valid
     assert responder.valid?
   end
-
 end

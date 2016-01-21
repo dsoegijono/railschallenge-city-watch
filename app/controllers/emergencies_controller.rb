@@ -9,7 +9,7 @@ class EmergenciesController < ApplicationController
       return
     end
 
-    return if check_unpermitted_param(%w(id resolved_at))
+    return if check_unpermitted_param(%w(id resolved_at), params['emergency'])
 
     missing_numbers = ['can\'t be blank', 'is not a number']
     errors[:fire_severity] = missing_numbers unless e['fire_severity']
@@ -42,7 +42,7 @@ class EmergenciesController < ApplicationController
   end
 
   def update
-    return if check_unpermitted_param(%w(code))
+    return if check_unpermitted_param(%w(code), params['emergency'])
     @emergency = find_emergency(params['id'])
     if @emergency.update(emergencies_params)
       render json: { emergency: @emergency }, status: 200
@@ -65,19 +65,5 @@ class EmergenciesController < ApplicationController
     ret = {}
     types.each { |t| ret[t.to_sym] = ['must be greater than or equal to 0'] if e[t].to_i < 0 }
     ret
-  end
-
-  def check_unpermitted_param(unpermitted)
-    unpermitted.each do |u|
-      if params['emergency'][u]
-        render_error_unpermitted_param(u)
-        return true
-      end
-    end
-    false
-  end
-
-  def render_error_unpermitted_param(param)
-    render json: { message: "found unpermitted parameter: #{param}" }, status: 422
   end
 end
