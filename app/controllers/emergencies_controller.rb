@@ -1,10 +1,12 @@
 class EmergenciesController < ApplicationController
+  before_action :find_emergency, only: [:show, :update]
+
   def create
     e = params['emergency']
 
     errors = check_severities(e, %w(fire_severity police_severity medical_severity))
 
-    if find_emergency(e['code'])
+    if Emergency.where(code: e['code']).first
       render json: { message: { code: ['has already been taken'] } }, status: 422
       return
     end
@@ -28,12 +30,11 @@ class EmergenciesController < ApplicationController
   def index
     render json: {
       emergencies: Emergency.all,
-      full_responses: [1, 3]
+      full_responses: [1, 3] # TODO: Get actual full responses number
     }, status: 200
   end
 
   def show
-    @emergency = find_emergency(params['id'])
     if @emergency
       render json: { emergency: @emergency }, status: 200
     else
@@ -43,7 +44,6 @@ class EmergenciesController < ApplicationController
 
   def update
     return if check_unpermitted_param(%w(code), params['emergency'])
-    @emergency = find_emergency(params['id'])
     if @emergency.update(emergencies_params)
       render json: { emergency: @emergency }, status: 200
     else
@@ -53,8 +53,8 @@ class EmergenciesController < ApplicationController
 
   private
 
-  def find_emergency(c)
-    Emergency.where(code: c).first
+  def find_emergency
+    @emergency = Emergency.where(code: params['id']).first
   end
 
   def emergencies_params
