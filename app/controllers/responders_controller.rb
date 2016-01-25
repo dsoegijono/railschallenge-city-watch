@@ -2,31 +2,14 @@ class RespondersController < ApplicationController
   before_action :find_responder, only: [:show, :update]
 
   def create
-    r = params['responder']
-    errors = {}
-
     unpermitted = %w(id on_duty emergency_code)
     return if check_unpermitted_param(unpermitted, params['responder'])
 
-    errors[:name] = ['can\'t be blank'] unless r['name']
-    errors[:type] = ['can\'t be blank'] unless r['type']
-    errors[:capacity] = ['can\'t be blank'] unless r['capacity']
-
-    if r['capacity'].to_i < 1 || r['capacity'].to_i > 5
-      errors[:capacity] = [] if errors[:capacity].nil?
-      errors[:capacity] << 'is not included in the list'
-    end
-
-    if Responder.where(name: r['name']).count > 0
-      errors[:name] = [] if errors[:name].nil?
-      errors[:name] << 'has already been taken'
-    end
-
-    if errors.blank?
-      @responder = Responder.create!(responder_params)
-      render json: { responder: @responder }, status: 201
+    @responder = Responder.new(create_params)
+    if @responder.save
+      render json: { responder: @responder }, status: :created
     else
-      render json: { message: errors }, status: 422
+      render json: { message: @responder.errors.messages }, status: :unprocessable_entity
     end
   end
 
@@ -60,6 +43,10 @@ class RespondersController < ApplicationController
 
   def find_responder
     @responder = Responder.where(name: params['id']).first
+  end
+
+  def create_params
+    params.require(:responder).permit(:type, :name, :capacity)
   end
 
   def responder_params

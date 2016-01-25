@@ -5,8 +5,8 @@ class Responder < ActiveRecord::Base
   belongs_to :emergency
 
   validates :type, presence: true
-  validates :name, presence: true
-  validates :capacity, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :name, presence: true, uniqueness: true
+  validates :capacity, presence: true, inclusion: 1..5
 
   def self.types
     %w(Fire Police Medical)
